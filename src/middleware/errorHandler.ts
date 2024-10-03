@@ -8,6 +8,7 @@ import logger from "../lib/logger";
 import { BAD_REQUEST, INTERNAL_SERVER_ERROR } from "../const/http";
 import z, { ZodError } from "zod";
 import AppError from "../lib/AppError";
+import { clearAuthCookies, REFRESH_PATH } from "../utils/cookie";
 
 export type ErrorRequestHandler = (
     err: any,
@@ -41,6 +42,10 @@ const errorHandler: ErrorRequestHandler = (
     next: NextFunction
 ) => {
     logger.error(`PATH:${req.path}`, error);
+
+    if (req.path === REFRESH_PATH) {
+        clearAuthCookies(res);
+    }
 
     if (error instanceof z.ZodError) {
         return handleZodError(res, error);

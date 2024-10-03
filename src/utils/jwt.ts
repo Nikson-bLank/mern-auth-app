@@ -8,7 +8,7 @@ type AccessTokenPayload = {
     sessionId: SessionDocument["_id"];
 };
 
-type RefreshTokenPayload = {
+export type RefreshTokenPayload = {
     sessionId: SessionDocument["_id"];
 };
 
@@ -20,12 +20,12 @@ const defaults: SignOptions = {
     audience: ["user"],
 };
 
-const accessTokenOption: SignOptionsAndSecret = {
+export const accessTokenOptions: SignOptionsAndSecret = {
     expiresIn: "15m",
     secret: JWT_SECRET,
 };
 
-export const refreshTokenOption: SignOptionsAndSecret = {
+export const refreshTokenOptions: SignOptionsAndSecret = {
     expiresIn: "30d",
     secret: JWT_REFRESH_SECRET,
 };
@@ -34,7 +34,7 @@ export const signToken = (
     payload: AccessTokenPayload | RefreshTokenPayload,
     options?: SignOptionsAndSecret
 ) => {
-    const { secret, ...signOptions } = options || accessTokenOption;
+    const { secret, ...signOptions } = options || accessTokenOptions;
     return jwt.sign(payload, secret, { ...defaults, ...signOptions });
 };
 

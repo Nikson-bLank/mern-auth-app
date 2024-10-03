@@ -12,12 +12,12 @@ const defaults: CookieOptions = {
     secure,
 };
 
-const getAccessTokenCookieOptions = (): CookieOptions => ({
+export const getAccessTokenCookieOptions = (): CookieOptions => ({
     ...defaults,
     expires: dayjs().add(15, "minutes").toDate(),
 });
 
-const getRefreshTokenCookieOptions = (): CookieOptions => ({
+export const getRefreshTokenCookieOptions = (): CookieOptions => ({
     ...defaults,
     expires: dayjs().add(30, "days").toDate(),
     path: REFRESH_PATH,
