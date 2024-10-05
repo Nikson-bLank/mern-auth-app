@@ -7,7 +7,7 @@ const logger = createLogger({
         format.colorize(),
         format.timestamp(),
         format.printf(({ timestamp, level, message }) => {
-            return `[${dayjs(timestamp).format()}] ${level}: ${message}`;
+            return `[${dayjs(timestamp).format()}]  ${level}: ${message}`;
         })
     ),
 });

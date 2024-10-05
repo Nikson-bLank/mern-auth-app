@@ -20,3 +20,5 @@ export const authSchema = z.object({
     password: passwordSchema,
     userAgent: z.string().optional(),
 });
+
+export const verificationCodeSchema = z.string().min(1).max(24);

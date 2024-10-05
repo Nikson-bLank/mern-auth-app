@@ -6,7 +6,7 @@ import SessionModel from "../models/session.model";
 import jwt from "jsonwebtoken";
 import { JWT_REFRESH_SECRET, JWT_SECRET } from "../const/env";
 import appErrorAssert from "../utils/appErrorAssert";
-import { CONFLICT, UNAUTHORIZED } from "../const/http";
+import { CONFLICT, NOT_FOUND, UNAUTHORIZED } from "../const/http";
 import logger from "../lib/logger";
 import {
     refreshTokenOptions,
@@ -140,4 +140,37 @@ export const refreshAccessToken = async (refreshToken: string) => {
     const accessToken = signToken({ sessionId, userId });
 
     return { accessToken, refreshToken: newRefreshToken };
+};
+
+export const verifyEmail = async (code: string) => {
+    //check for verification code
+    const verificationCode = await VerificationCodeModel.findOne({
+        _id: code,
+        type: verificationCodeType.EmailVerification,
+        expiresAt: { $gt: dayjs() },
+    });
+
+    appErrorAssert(
+        verificationCode,
+        NOT_FOUND,
+        "Invalid or expired verification code"
+    );
+    // update user to verify
+    const updatedUser = await UserModel.findByIdAndUpdate(
+        verificationCode.userId,
+        {
+            verified: true,
+        },
+        {
+            new: true,
+        }
+    );
+
+    // delete verification data
+    await verificationCode.deleteOne();
+
+    //   return updatedUser
+    return {
+        user: updatedUser?.omitPassword(),
+    };
 };

@@ -5,6 +5,7 @@ import {
     createAccount,
     loginUser,
     refreshAccessToken,
+    verifyEmail,
 } from "../services/auth.service";
 import appErrorAssert from "../utils/appErrorAssert";
 import catchErrors from "../utils/catchErrors";
@@ -15,7 +16,10 @@ import {
     setAuthCookies,
 } from "../utils/cookie";
 import { verifyToken } from "../utils/jwt";
-import { authSchema } from "../validation-schema/auth.schema";
+import {
+    authSchema,
+    verificationCodeSchema,
+} from "../validation-schema/auth.schema";
 
 export const registerHandler = catchErrors(async (req, res) => {
     //validate request
@@ -85,4 +89,12 @@ export const refreshHandler = catchErrors(async (req, res) => {
         .json({
             message: "Access token refreshed successfully",
         });
+});
+
+export const verifyEmailHandler = catchErrors(async (req, res) => {
+    const verificationCode = verificationCodeSchema.parse(req.params.code);
+    await verifyEmail(verificationCode);
+    return res.status(OK).json({
+        message: "Email verified successfully",
+    });
 });
