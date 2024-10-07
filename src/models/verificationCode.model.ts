@@ -4,7 +4,7 @@ import VerificationCodeType from "../const/verificationCodeTypes";
 export interface VerificationCodeDocument extends mongoose.Document {
     userId: mongoose.Types.ObjectId;
     type: VerificationCodeType;
-    createAt: Date;
+    createdAt: Date;
     expiresAt: Date;
 }
 
@@ -16,7 +16,7 @@ const verificationCodeSchema = new mongoose.Schema<VerificationCodeDocument>({
         index: true,
     },
     type: { type: String, required: true },
-    createAt: { type: Date, required: true, default: Date.now },
+    createdAt: { type: Date, required: true, default: Date.now },
     expiresAt: { type: Date, required: true },
 });
 

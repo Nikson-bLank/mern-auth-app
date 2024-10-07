@@ -1,19 +1,30 @@
 import dayjs from "dayjs";
+import { APP_ORIGIN } from "../const/env";
+import {
+    CONFLICT,
+    INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
+    TOO_MANY_REQUESTS,
+    UNAUTHORIZED,
+} from "../const/http";
 import verificationCodeType from "../const/verificationCodeTypes";
+import logger from "../lib/logger";
+import SessionModel from "../models/session.model";
 import UserModel from "../models/user.model";
 import VerificationCodeModel from "../models/verificationCode.model";
-import SessionModel from "../models/session.model";
-import jwt from "jsonwebtoken";
-import { JWT_REFRESH_SECRET, JWT_SECRET } from "../const/env";
 import appErrorAssert from "../utils/appErrorAssert";
-import { CONFLICT, NOT_FOUND, UNAUTHORIZED } from "../const/http";
-import logger from "../lib/logger";
+import { hashValue } from "../utils/bcrypt";
+import {
+    getPasswordResetEmail,
+    getVerificationEmail,
+} from "../utils/emailTemplates";
 import {
     refreshTokenOptions,
     RefreshTokenPayload,
     signToken,
     verifyToken,
 } from "../utils/jwt";
+import { sendMail } from "../utils/sendMail";
 
 type AuthParam = {
     email: string;
@@ -50,6 +61,20 @@ export const createAccount = async (data: AuthParam) => {
     });
 
     //send email
+    const url = `${APP_ORIGIN}/auth/email/verify/${verificationCode._id}`;
+    logger.info(`auth.service.ts ~ createAccount, url:: ${url}`);
+
+    const { error } = await sendMail({
+        to: user.email,
+        ...getVerificationEmail(url),
+    });
+
+    if (error)
+        logger.error(
+            `auth.service.ts ~ createAccount, sendMail::${JSON.stringify(
+                error
+            )}`
+        );
 
     // create session
     const session = await SessionModel.create({
@@ -166,11 +191,131 @@ export const verifyEmail = async (code: string) => {
         }
     );
 
+    appErrorAssert(
+        updatedUser,
+        INTERNAL_SERVER_ERROR,
+        "Failed to verify email"
+    );
+
     // delete verification data
     await verificationCode.deleteOne();
 
     //   return updatedUser
     return {
         user: updatedUser?.omitPassword(),
+    };
+};
+
+export const sendPasswordResetEmail = async (email: string) => {
+    const user = await UserModel.findOne({
+        email,
+    });
+
+    appErrorAssert(user, NOT_FOUND, "User not found");
+
+    // check email rate limit
+    let userId = user._id;
+    const now = dayjs();
+    const fiveMinuteAgo = now.subtract(5, "minutes");
+
+    const count = await VerificationCodeModel.countDocuments({
+        userId,
+        type: verificationCodeType.PasswordReset,
+        createdAt: { $gt: fiveMinuteAgo },
+    });
+    appErrorAssert(
+        count <= 1,
+        TOO_MANY_REQUESTS,
+        "Too many request, please try again later."
+    );
+
+    //  create verification code
+    const expiresAt = now.add(1, "hour");
+
+    const verificationCode = await VerificationCodeModel.create({
+        userId,
+        type: verificationCodeType.PasswordReset,
+        expiresAt,
+    });
+
+    appErrorAssert(
+        verificationCode,
+        INTERNAL_SERVER_ERROR,
+        "Could not create verification code"
+    );
+
+    // send reset password mail
+    let url = `${APP_ORIGIN}/password/reset?code=${
+        verificationCode._id
+    }&exp=${expiresAt.valueOf()}`;
+
+    logger.info(`auth.service.ts ~ sendPasswordResetEmail, url:: ${url}`);
+
+    const { data, error } = await sendMail({
+        to: user.email,
+        ...getPasswordResetEmail(url),
+    });
+
+    appErrorAssert(
+        data?.id,
+        INTERNAL_SERVER_ERROR,
+        `Could not send reset password mail,${error?.name}-${error?.message} `
+    );
+
+    return {
+        url,
+        emailId: data.id,
+    };
+};
+
+type ResetPasswordParams = {
+    password: string;
+    verificationCode: string;
+};
+
+export const resetPassword = async ({
+    password,
+    verificationCode,
+}: ResetPasswordParams) => {
+    const now = dayjs();
+    // check for verification code
+    const verification = await VerificationCodeModel.findOne({
+        _id: verificationCode,
+        type: verificationCodeType.PasswordReset,
+        expiresAt: { $gt: now },
+    });
+
+    appErrorAssert(
+        verification,
+        NOT_FOUND,
+        "Invalid or Expired verification code"
+    );
+
+    // update the user password
+
+    const updatedUserPassword = await UserModel.findByIdAndUpdate(
+        verification.userId,
+        {
+            password: await hashValue(password),
+        },
+        {
+            new: true,
+        }
+    );
+
+    appErrorAssert(
+        updatedUserPassword,
+        INTERNAL_SERVER_ERROR,
+        "Failed to update password"
+    );
+    // delete verification data
+    await verification.deleteOne();
+    // delete all session
+    await SessionModel.deleteMany({
+        userId: updatedUserPassword._id,
+    });
+
+    return {
+        user: updatedUserPassword.omitPassword(),
     };
 };
