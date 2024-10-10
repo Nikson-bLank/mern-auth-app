@@ -3,7 +3,7 @@ import { UserDocument } from "../models/user.model";
 import { SessionDocument } from "../models/session.model";
 import { JWT_REFRESH_SECRET, JWT_SECRET } from "../const/env";
 
-type AccessTokenPayload = {
+export type AccessTokenPayload = {
     userId: UserDocument["_id"];
     sessionId: SessionDocument["_id"];
 };
