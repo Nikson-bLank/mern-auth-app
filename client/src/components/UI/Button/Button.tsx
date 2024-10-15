@@ -1,12 +1,14 @@
 import { cva, VariantProps } from "class-variance-authority";
 import { ButtonHTMLAttributes, ReactNode, useMemo } from "react";
 import cn from "../../../utils/cn";
+import Loading from "../../svg/Loading";
 interface ButtonProps
     extends ButtonHTMLAttributes<HTMLButtonElement>,
         VariantProps<typeof buttonVariants> {
     children: ReactNode;
     leftIcon?: React.ReactElement;
     rightIcon?: React.ReactElement;
+    loading?: boolean;
 }
 
 export default function Button({
@@ -16,6 +18,7 @@ export default function Button({
     rightIcon,
     variant,
     size,
+    loading,
     ...props
 }: ButtonProps) {
     // determine icon placement
@@ -27,6 +30,22 @@ export default function Button({
             iconPlacement: rightIcon ? ("right" as const) : ("left" as const),
         };
     }, [leftIcon, rightIcon]);
+
+    if (loading)
+        return (
+            <button
+                {...props}
+                disabled
+                className={cn(buttonVariants({ className, variant, size }))}
+            >
+                <span className="flex gap-2 items-center">
+                    <Loading
+                        className={cn(loadingVariants({ variant, size }))}
+                    />
+                    Loading...
+                </span>
+            </button>
+        );
 
     return (
         <button
@@ -53,13 +72,14 @@ export default function Button({
 }
 
 const buttonVariants = cva(
-    "inline-flex items-center tracking-wide font-semibold w-full transition-all duration-300 ease-in-out justify-center focus:shadow-outline focus:outline-none",
+    "inline-flex items-center tracking-wide font-semibold  transition-all duration-300 ease-in-out justify-center focus:shadow-outline focus:outline-none",
     {
         variants: {
             variant: {
-                primary: "bg-indigo-500 text-gray-100 hover:bg-indigo-700",
+                primary:
+                    "bg-indigo-500 text-white hover:bg-indigo-700 hover:shadow focus:shadow-sm",
                 secondary:
-                    "bg-indigo-100 text-gray-800 hover:shadow focus:shadow-sm",
+                    " bg-transparent border border-indigo-500 text-indigo-900 hover:bg-indigo-100  hover:shadow focus:shadow-sm",
                 destructive: "bg-red-400 text-white",
                 link: "text-gray-800 !p-0 !h-fit",
             },
@@ -74,3 +94,22 @@ const buttonVariants = cva(
         },
     }
 );
+
+const loadingVariants = cva("", {
+    variants: {
+        variant: {
+            primary: "stroke-white",
+            secondary: "stroke-indigo-900",
+            destructive: "stroke-white",
+            link: "stroke-gray-800",
+        },
+        size: {
+            md: "h-8 w-8 ",
+            lg: "h-10 w-10",
+        },
+    },
+    defaultVariants: {
+        variant: "primary",
+        size: "md",
+    },
+});

@@ -1,22 +1,29 @@
 import { Route, Routes } from "react-router-dom";
 import Main from "./layouts/Main";
 import About from "./pages/About";
-import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import Profile from "./pages/Profile";
 
 const APP_ROUTES = [
     {
-        id: "home",
+        id: "main",
         path: "/",
-        component: <Home />,
+        component: <Main />,
+        children: [
+            {
+                id: "about",
+                path: "/about",
+                component: <About />,
+            },
+            {
+                id: "profile",
+                path: "/profile",
+                component: <Profile />,
+            },
+        ],
     },
-    {
-        id: "about",
-        path: "/about",
-        component: <About />,
-    },
+
     {
         id: "sign-in",
         path: "/sign-in",
@@ -27,26 +34,30 @@ const APP_ROUTES = [
         path: "/sign-up",
         component: <SignUp />,
     },
-    {
-        id: "profile",
-        path: "/profile",
-        component: <Profile />,
-    },
 ];
 
 function App() {
     return (
-        <Main>
+        <div>
             <Routes>
                 {APP_ROUTES.map((route) => (
                     <Route
                         key={route.id}
                         element={route.component}
                         path={route.path}
-                    />
+                    >
+                        {route.children &&
+                            route.children.map((childRoute) => (
+                                <Route
+                                    key={childRoute.id}
+                                    element={childRoute.component}
+                                    path={childRoute.path}
+                                />
+                            ))}
+                    </Route>
                 ))}
             </Routes>
-        </Main>
+        </div>
     );
 }
 

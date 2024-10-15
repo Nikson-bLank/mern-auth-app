@@ -1,16 +1,12 @@
-import { ReactNode } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Outlet } from "react-router-dom";
 
-type Props = {
-    children: ReactNode;
-};
-
-const Main = ({ children }: Props) => {
+const Main = () => {
     return (
         <div className="min-h-screen grid grid-rows-layout">
             <Navbar />
-            <main>{children}</main>
+            <main>{<Outlet />}</main>
             <Footer />
         </div>
     );

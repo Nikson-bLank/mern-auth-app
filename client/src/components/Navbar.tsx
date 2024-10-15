@@ -1,8 +1,4 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import Button from "./UI/Button/Button";
-
-type Props = {};
 
 const NAV_ITEMS = [
     {
@@ -30,7 +26,7 @@ const LOGGEDIN_MENU = [
     },
 ];
 
-const Navbar = (props: Props) => {
+const Navbar = () => {
     return (
         <nav className="bg-indigo-100 shadow-lg min-h-20">
             <div className="container flex flex-wrap items-center justify-between mx-auto p-4">
@@ -43,9 +39,8 @@ const Navbar = (props: Props) => {
                 <div className="flex gap-4 items-center justify-between">
                     <ul className="list-none flex gap-4">
                         {NAV_ITEMS.map((item) => (
-                            <li>
+                            <li key={item.id}>
                                 <Link
-                                    key={item.id}
                                     to={item.link}
                                     className="text-lg font-semibold capitalize"
                                 >
@@ -54,9 +49,12 @@ const Navbar = (props: Props) => {
                             </li>
                         ))}
                     </ul>
-                    <Button variant={"primary"} size={"lg"}>
+                    <Link
+                        to={"/sign-in"}
+                        className="inline-flex items-center tracking-wide font-semibold w-full transition-all duration-300 ease-in-out justify-center focus:shadow-outline focus:outline-none bg-indigo-500 text-gray-100 hover:bg-indigo-700 h-12 px-5 py-4 text-md rounded-lg"
+                    >
                         Sign In
-                    </Button>
+                    </Link>
                 </div>
             </div>
         </nav>
