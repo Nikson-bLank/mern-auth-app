@@ -2,6 +2,7 @@ import Button from "../components/UI/Button/Button";
 import loginImage from "../assets/svg/login.svg";
 import { useState } from "react";
 import { useLogin } from "../api/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 type LoginData = {
     email: string;
@@ -26,14 +27,14 @@ const SignIn = () => {
     };
     return (
         <div className="bg-indigo-200 w-full h-screen">
-            <div className="container mx-auto lg:px-60 px-4 flex h-full items-center ">
-                <div className="w-full bg-white rounded-2xl min-h-96 flex gap-10 box-border p-10">
+            <div className="container mx-auto  flex h-full items-center px-5">
+                <div className="w-full bg-white rounded-2xl min-h-96 flex gap-10 box-border md:p-10 p-5">
                     <div className="hidden lg:block w-1/2">
                         <div className="rounded-xl bg-gray-700 h-full w-full">
                             <img src={loginImage} />
                         </div>
                     </div>
-                    <div className="w-full lg:w-1/2 py-6 lg:px-4 px-6">
+                    <div className="w-full lg:w-1/2 py-6 lg:px-6 px-2">
                         <h1 className="text-4xl font-bold mb-6 text-black text-center">
                             Login
                         </h1>
@@ -62,7 +63,7 @@ const SignIn = () => {
                                     name={"email"}
                                     value={loginData.email}
                                     onChange={handleInput}
-                                    className="w-full h-12 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-indigo-200 rounded-xl px-3 py-2 transition duration-300 ease focus:outline-none focus:border-indigo-400 hover:border-indigo-400 shadow-sm focus:shadow-md"
+                                    className="w-full h-12 bg-transparent placeholder:text-slate-400 text-slate-700  border border-indigo-200 rounded-xl px-3 py-2 transition duration-300 ease focus:outline-none focus:border-indigo-400 hover:border-indigo-400 shadow-sm focus:shadow-md"
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
@@ -77,21 +78,31 @@ const SignIn = () => {
                                     name="password"
                                     value={loginData.password}
                                     onChange={handleInput}
-                                    className="w-full h-12 bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-indigo-200 rounded-xl px-3 py-2 transition duration-300 ease focus:outline-none focus:border-indigo-400 hover:border-indigo-400 shadow-sm focus:shadow-md"
+                                    className="w-full h-12 bg-transparent placeholder:text-slate-400 text-slate-700  border border-indigo-200 rounded-xl px-3 py-2 transition duration-300 ease focus:outline-none focus:border-indigo-400 hover:border-indigo-400 shadow-sm focus:shadow-md"
                                 />
                             </div>
                             <div className="flex justify-end">
-                                <Button
-                                    variant={"link"}
-                                    size={"md"}
+                                <Link
+                                    to={"/forgot-password"}
                                     className="underline"
                                 >
                                     Forgot Password?
-                                </Button>
+                                </Link>
                             </div>
                             <Button type="submit" loading={isPending}>
                                 Login
                             </Button>
+                            <div className="w-full flex justify-center">
+                                <p className="text-md text-slate-400">
+                                    Don&apos;t have an account?&nbsp;
+                                    <Link
+                                        to="/sign-up"
+                                        className="text-indigo-400 hover:text-indigo-800 underline"
+                                    >
+                                        Sign up
+                                    </Link>
+                                </p>
+                            </div>
                         </form>
                     </div>
                 </div>

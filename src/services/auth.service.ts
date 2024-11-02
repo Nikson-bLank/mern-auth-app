@@ -61,7 +61,7 @@ export const createAccount = async (data: AuthParam) => {
     });
 
     //send email
-    const url = `${APP_ORIGIN}/auth/email/verify/${verificationCode._id}`;
+    const url = `${APP_ORIGIN}/verify-email/${verificationCode._id}`;
     logger.info(`auth.service.ts ~ createAccount, url:: ${url}`);
 
     const { error } = await sendMail({
@@ -207,65 +207,72 @@ export const verifyEmail = async (code: string) => {
 };
 
 export const sendPasswordResetEmail = async (email: string) => {
-    const user = await UserModel.findOne({
-        email,
-    });
+    try {
+        const user = await UserModel.findOne({
+            email,
+        });
 
-    appErrorAssert(user, NOT_FOUND, "User not found");
+        appErrorAssert(user, NOT_FOUND, "User not found");
 
-    // check email rate limit
-    let userId = user._id;
-    const now = dayjs();
-    const fiveMinuteAgo = now.subtract(5, "minutes");
+        // check email rate limit
+        let userId = user._id;
+        const now = dayjs();
+        const fiveMinuteAgo = now.subtract(5, "minutes");
 
-    const count = await VerificationCodeModel.countDocuments({
-        userId,
-        type: verificationCodeType.PasswordReset,
-        createdAt: { $gt: fiveMinuteAgo },
-    });
-    appErrorAssert(
-        count <= 1,
-        TOO_MANY_REQUESTS,
-        "Too many request, please try again later."
-    );
+        const count = await VerificationCodeModel.countDocuments({
+            userId,
+            type: verificationCodeType.PasswordReset,
+            createdAt: { $gt: fiveMinuteAgo },
+        });
+        appErrorAssert(
+            count <= 1,
+            TOO_MANY_REQUESTS,
+            "Too many request, please try again later."
+        );
 
-    //  create verification code
-    const expiresAt = now.add(1, "hour");
+        //  create verification code
+        const expiresAt = now.add(1, "hour");
 
-    const verificationCode = await VerificationCodeModel.create({
-        userId,
-        type: verificationCodeType.PasswordReset,
-        expiresAt,
-    });
+        const verificationCode = await VerificationCodeModel.create({
+            userId,
+            type: verificationCodeType.PasswordReset,
+            expiresAt,
+        });
 
-    appErrorAssert(
-        verificationCode,
-        INTERNAL_SERVER_ERROR,
-        "Could not create verification code"
-    );
+        appErrorAssert(
+            verificationCode,
+            INTERNAL_SERVER_ERROR,
+            "Could not create verification code"
+        );
 
-    // send reset password mail
-    let url = `${APP_ORIGIN}/password/reset?code=${
-        verificationCode._id
-    }&exp=${expiresAt.valueOf()}`;
+        // send reset password mail
+        let url = `${APP_ORIGIN}/reset-password?code=${
+            verificationCode._id
+        }&exp=${expiresAt.valueOf()}`;
 
-    logger.info(`auth.service.ts ~ sendPasswordResetEmail, url:: ${url}`);
+        logger.info(`auth.service.ts ~ sendPasswordResetEmail, url:: ${url}`);
 
-    const { data, error } = await sendMail({
-        to: user.email,
-        ...getPasswordResetEmail(url),
-    });
+        const { data, error } = await sendMail({
+            to: user.email,
+            ...getPasswordResetEmail(url),
+        });
 
-    appErrorAssert(
-        data?.id,
-        INTERNAL_SERVER_ERROR,
-        `Could not send reset password mail,${error?.name}-${error?.message} `
-    );
+        appErrorAssert(
+            data?.id,
+            INTERNAL_SERVER_ERROR,
+            `Could not send reset password mail,${error?.name}-${error?.message} `
+        );
 
-    return {
-        url,
-        emailId: data.id,
-    };
+        return {
+            url,
+            emailId: data.id,
+        };
+    } catch (error: any) {
+        logger.error(
+            `auth.service.ts ~ sendPasswordResetEmail, error::${error?.message}`
+        );
+        return {};
+    }
 };
 
 type ResetPasswordParams = {

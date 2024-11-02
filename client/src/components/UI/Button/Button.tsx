@@ -79,8 +79,8 @@ const buttonVariants = cva(
                 primary:
                     "bg-indigo-500 text-white hover:bg-indigo-700 hover:shadow focus:shadow-sm",
                 secondary:
-                    " bg-transparent border border-indigo-500 text-indigo-900 hover:bg-indigo-100  hover:shadow focus:shadow-sm",
-                destructive: "bg-red-400 text-white",
+                    " bg-transparent border border-indigo-500 text-indigo-500 hover:bg-indigo-100  hover:shadow focus:shadow-sm",
+                destructive: "bg-red-500 text-white hover:bg-red-700 hover:shadow focus:shadow-sm",
                 link: "text-gray-800 !p-0 !h-fit",
             },
             size: {
